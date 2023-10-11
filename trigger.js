@@ -59,7 +59,7 @@ async function main() {
 
 setInterval(() => {
     main();
-},30000); // Runs every 5 minutes => 5*60*100 = 30,000
+},1000); // Runs every 5 minutes => 5*60*100 = 30,000
 
 
 
