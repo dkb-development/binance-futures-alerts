@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "nodemon trigger.js",
+    "start": "node trigger.js",
     "start5": "nodemon index5.js",
     "start15": "nodemon index15.js",
     "trigger": "nodemon trigger1.js",
