@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "start": "nodemon index.js",
+    "start5": "nodemon index5.js",
+    "start15": "nodemon index15.js",
+    "trigger": "nodemon trigger1.js",
+    "sendTrigger": "nodemon sendTrigger.js"
+  },
+  "dependencies": {
+    "binance-api-node": "^0.12.7",
+    "install": "^0.13.0",
+    "mongodb": "^6.1.0",
+    "node-binance-api": "^0.13.1",
+    "node-fetch": "^3.3.2",
+    "node-telegram-bot-api": "^0.63.0",
+    "nodemon": "^2.0.19",
+    "npm": "^10.2.0",
+    "ws": "^8.14.2"
+  },
+  "type": "module"
+}
