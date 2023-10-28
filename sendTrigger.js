@@ -77,7 +77,7 @@ const InsertIntoDB = async (msg) => {
     }
 }
 
-const DeleteFromDB = async (messageText) => {
+const DeleteFromDB = async (client, DB_NAME, COLLECTION_NAME, messageText) => {
     var splits = messageText.split("\n");
     if(splits.length != 3){
         return;

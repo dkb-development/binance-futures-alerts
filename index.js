@@ -57,9 +57,9 @@ async function main() {
     await client.close();
 }
 
-setInterval(() => {
-    main();
-},30000); // Runs every 5 minutes => 5*60*100 = 30,000
+// setInterval(() => {
+//     main();
+// },30000); // Runs every 5 minutes => 5*60*100 = 30,000
 
 
 

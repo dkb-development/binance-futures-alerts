@@ -23,8 +23,9 @@ export const startWebSocketForAllSymbols = (alertSymbolsDetails) => {
 };
 
 // Function to create a WebSocket connection for a given symbol
+var wsInstancesForAlerts = {};
 const createWebSocket = (symbol, alertDetails) => {
-    if(wsInstances[symbol]){
+    if(wsInstancesForAlerts[symbol]){
         return;
     }
     console.log("New Symbol came : ", symbol);
@@ -48,15 +49,48 @@ const createWebSocket = (symbol, alertDetails) => {
         // You might want to handle reconnection logic here
     });
 
-    wsInstances[symbol] = ws;
+    wsInstancesForAlerts[symbol] = ws;
+    return ws;
+};
+
+// Function to create a WebSocket connection for a given symbol
+export const createCustomWebSocket = (symbol, interval, callbackFunc) => {
+    if(wsInstances[symbol] && wsInstances[symbol][interval]){
+        return;
+    }
+    console.log("New Symbol came : ", symbol, " for interval : ",interval);
+
+    const wsEndpoint = `${wsBaseUrl}${symbol.toLowerCase()}@kline_${interval}`;
+    const ws = new WebSocket(wsEndpoint);
+
+    ws.on('open', () => {
+        console.log(`WebSocket Connection Opened for ${symbol} for the interval ${interval}`);
+    });
+
+    ws.on('message', (data) => {
+        const parsedData = JSON.parse(data);
+        if (parsedData.k && parsedData.k.x) {
+            callbackFunc(parsedData, symbol, interval);
+        }
+    });
+
+    ws.on('close', () => {
+        console.log(`WebSocket Connection Closed for ${symbol} for the interval ${interval}`);
+        // You might want to handle reconnection logic here
+    });
+
+    if(!wsInstances[symbol]){
+        wsInstances[symbol] = {};
+    }
+    wsInstances[symbol][interval] = ws;
     return ws;
 };
 
 const closeWebSocket = (symbol) => {
-  if (wsInstances[symbol]) {
-    wsInstances[symbol].close();
+  if (wsInstancesForAlerts[symbol]) {
+    wsInstancesForAlerts[symbol].close();
     console.log(`WebSocket Connection Closed for ${symbol}`);
-    delete wsInstances[symbol];
+    delete wsInstancesForAlerts[symbol];
   } else {
     console.log(`WebSocket for ${symbol} not found`);
   }
@@ -85,6 +119,15 @@ const handleKlineData = (kline, symbol, alertDetails) => {
 };
 
 export const deleteUnwantedSymbolsConnection = (wantedSymbols) => {
+    const socketSymbols = Object.keys(wsInstancesForAlerts);
+    const removableSymbols = socketSymbols.filter((symbol) => !wantedSymbols.includes(symbol));
+    removableSymbols.forEach((symbol) => {
+        closeWebSocket(symbol);
+    })
+}
+
+// This is used in PatternCheck Service
+export const deleteUnwantedSymbolsTracking = (wantedSymbolsDetails) => {
     const socketSymbols = Object.keys(wsInstances);
     const removableSymbols = socketSymbols.filter((symbol) => !wantedSymbols.includes(symbol));
     removableSymbols.forEach((symbol) => {
@@ -117,4 +160,9 @@ const checkTrigger = (candle, alertDetails) => {
         }
 
     })
+}
+
+
+export const updateSocketConnections = async () => {
+    var pendingAlerts = await getPendingAlerts();
 }

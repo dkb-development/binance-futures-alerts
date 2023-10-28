@@ -1,4 +1,4 @@
-import {DB_NAME,COLLECTION_NAME , connectToMongoDB} from '../configs/DBConfig.js';
+import {DB_NAME,PATTERN_CHECK_COLLECTION_NAME as COLLECTION_NAME , connectToMongoDB} from '../configs/DBConfig.js';
 import {sendDuplicateAlertMessage} from './TelegramMessageService.js';
 
 var client, database, collection;
@@ -134,6 +134,84 @@ async function findDocumentsByProperty(client, collectionName, propertyName, pro
     }
 }
 
-export const getPendingAlerts = async () => {
-    return await findDocumentsByProperty(client, COLLECTION_NAME, 'trigger_status', 'PENDING');
+export const getAllTrackedSymbols = async () => {
+    await getDBConnectionDetails();
+    return await collection.find({}).toArray();
+}
+
+export const addTrackedSymbols = async (symbolsDetails) => {
+    // Insert into the DB
+    try{
+        const {client, database, collection} = await getDBConnectionDetails();
+
+        symbolsDetails.forEach(async symbolDetails => {
+            // Check whether the same entry already present in the DB
+            const inDB = await collection.findOne({
+                symbol: symbolDetails.symbol,
+                interval: symbolDetails.interval
+            });
+            if(inDB){
+                return;
+            }
+
+            // If not present then insert into the DB
+            const result = await collection.insertOne({
+                symbol: symbolDetails.symbol,
+                interval: symbolDetails.interval
+            });
+            console.log(`Successfully inserted to the DB: ${result.insertedId}`);
+        });
+        
+        
+    }
+    catch(error){
+        console.error("Error Occured while inserting into the DB. ", error);
+    }
+}
+
+export const deleteTrackedSymbols = async (symbolsDetails) => {
+    // Insert into the DB
+    try{
+        const {client, database, collection} = await getDBConnectionDetails();
+
+        var deletedSymbols = [];
+        const promises = symbolsDetails.map(async symbolDetails => {
+            // Delete from the DB
+            const result = await collection.deleteOne({
+                symbol: symbolDetails.symbol,
+                interval: symbolDetails.interval
+            });
+            if (result.deletedCount === 1) {
+                deletedSymbols.push(symbolDetails);
+                console.log('Document deleted successfully');
+            } else {
+                console.log('Document not found');
+            }
+        });
+
+        // Use Promise.all to wait for all promises to resolve
+        await Promise.all(promises);
+
+        return deletedSymbols;
+        
+    }
+    catch(error){
+        console.error("Error Occured while inserting into the DB. ", error);
+    }
+}
+
+export const deleteAllTrackedSymbols = async () => {
+    // Insert into the DB
+    try{
+        const {client, database, collection} = await getDBConnectionDetails();
+
+        // Use deleteOne to delete a single document
+        const result = await collection.deleteMany({
+        });
+
+        return result.deletedCount;
+    }
+    catch(error){
+        console.error("Error Occured while deleting the entry. ", error);
+    }
 }

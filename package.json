@@ -1,12 +1,17 @@
 {
   "scripts": {
-    "start": "nodemon server.js",
-    "start5": "nodemon index5.js",
-    "start15": "nodemon index15.js",
-    "trigger": "nodemon trigger1.js",
-    "sendTrigger": "nodemon sendTrigger.js"
+    "server": "nodemon --watch server.js server.js",
+    "start5": "nodemon --watch index5.js",
+    "start15": "nodemon --watch index15.js",
+    "trigger": "nodemon --watch trigger1.js",
+    "patternCheck": "nodemon --watch ./services/PatternCheckService.js ./services/PatternCheckService.js",
+    "testTelegramBot": "nodemon --watch ./testTelegramBot.js",
+    "startAlertAndPattern": "node server.js && node ./services/PatternCheckService.js"
+
+
   },
   "dependencies": {
+    "axios": "^1.5.1",
     "binance-api-node": "^0.12.7",
     "install": "^0.13.0",
     "mongodb": "^6.1.0",

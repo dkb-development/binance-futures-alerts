@@ -1,13 +1,30 @@
 import { getDBConnectionDetails, getPendingAlerts, UpdatePendingToCompleted } from "./services/PriceAlertsDBService.js";
 import { createMessageTelegramBot, SendPriceAlerts } from "./services/TelegramMessageService.js";
 import { startWebSocketForAllSymbols, deleteUnwantedSymbolsConnection } from './services/BinanceFuturesStreamService.js';
+import { telegramBot } from './localStorage.js';
+
+
+// Modifying the console.log to print the data & time
+// const originalConsoleLog = console.log;
+
+// console.log = function () {
+//   const timestamp = new Date();
+//   const args = Array.from(arguments).map(arg => {
+//     return typeof arg === 'object' ? arg : arg;
+//   });
+//   originalConsoleLog(`[${timestamp}]`, ...args);
+// };
+// Modifying the console.log to print the data & time
+
 
 const start = async () => {
     // Initiate DB Connection
     await getDBConnectionDetails();
 
     // Initiate Telegram bot
-    createMessageTelegramBot();
+    if(telegramBot == {}){
+        telegramBot = createMessageTelegramBot();
+    }
 
     // get updated Pending Alerts every 5 minutes
     var pendingAlerts = await getPendingAlerts();
@@ -21,6 +38,7 @@ const start = async () => {
             alertSymbolsDetails[symbol] = [];
         }
         alertSymbolsDetails[entry.symbol].push({
+            interval: "1m",
             ...entry
         });
     });
