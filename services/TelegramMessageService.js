@@ -195,11 +195,11 @@ const sendAlert = (message) => {
 }
 
 export const SendHighVolAlert = async (alertDetails) => {
-    var message = `!!!ALERT!!!\n\High Volume for \n\n${alertDetails.symbol}\t ${alertDetails.interval}\n${alertDetails.volPercent}%`;
+    var message = `!!!ALERT!!!\n\High Volume for \n\n${alertDetails.symbol}\t ${alertDetails.interval}\n${alertDetails.volPercent}%\nBuy/Sell Ratio : ${alertDetails.buySellPercent}%`;
     sendAlert(message);
 }
 
 export const SendHighSpreadAlert = async (alertDetails) => {
-    var message = `!!!ALERT!!!\n\High Movement for \n\n${alertDetails.symbol}\t ${alertDetails.interval}\nDireaction : ${alertDetails.direction} , ${alertDetails.spreadPercent}%`;
+    var message = `!!!ALERT!!!\n\High Movement for \n\n${alertDetails.symbol}\t ${alertDetails.interval}\nDireaction : ${alertDetails.direction} , ${alertDetails.spreadPercent}%\nBuy/Sell Ratio : ${alertDetails.buySellPercent}%`;
     sendAlert(message);
 }

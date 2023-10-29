@@ -96,8 +96,14 @@ const patternCheckCallbackFunc = (parsedData, currSymbol, currInterval) => {
     let { o:open, h:high, l:low, c:close, v:volume, n:trades, i:interval, x:isFinal, q:quoteVolume, V:buyVolume, Q:quoteBuyVolume } = parsedData.k;
     if(isFinal){
         var candle = {
-            symbol, interval, open: parseFloat(open), high: parseFloat(high), low: parseFloat(low), close: parseFloat(close), volume: parseFloat(volume)
+            symbol, interval, open: parseFloat(open), high: parseFloat(high), low: parseFloat(low), close: parseFloat(close), volume: parseFloat(volume), quoteVolume: parseFloat(quoteVolume), quoteBuyVolume: parseFloat(quoteBuyVolume)
         }
+
+        // Calculate the buy sell ratio
+        quoteVolume = parseFloat(quoteVolume);
+        quoteBuyVolume = parseFloat(quoteBuyVolume);
+        var quoteSellVolume = quoteVolume - quoteBuyVolume;
+        var buySellPercent = parseFloat(((quoteBuyVolume/quoteSellVolume)*100).toFixed(6));
 
         var symbolHistory = symbolsDetails[symbol][interval];
 
@@ -108,7 +114,8 @@ const patternCheckCallbackFunc = (parsedData, currSymbol, currInterval) => {
             SendHighVolAlert({
                 symbol,
                 interval,
-                volPercent
+                volPercent,
+                buySellPercent
             })
         }
 
@@ -120,7 +127,8 @@ const patternCheckCallbackFunc = (parsedData, currSymbol, currInterval) => {
                 symbol,
                 interval,
                 direction : (spreadPercent >= 0 ? "UP" : "DOWN"),
-                spreadPercent
+                spreadPercent,
+                buySellPercent
             });
         }
 
