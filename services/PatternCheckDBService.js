@@ -1,5 +1,6 @@
 import {DB_NAME,PATTERN_CHECK_COLLECTION_NAME as COLLECTION_NAME , connectToMongoDB} from '../configs/DBConfig.js';
 import {sendDuplicateAlertMessage} from './TelegramMessageService.js';
+import { getDBConnectionDetails as getDBConnection } from '../configs/DBConfig.js';
 
 var client, database, collection;
 
@@ -134,8 +135,8 @@ async function findDocumentsByProperty(client, collectionName, propertyName, pro
     }
 }
 
-export const getAllTrackedSymbols = async () => {
-    await getDBConnectionDetails();
+export const getAllTrackedSymbols = async (givenCollectionName) => {
+    var {client, database, collection} = getDBConnection(givenCollectionName);
     return await collection.find({}).toArray();
 }
 

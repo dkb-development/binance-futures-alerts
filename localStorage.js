@@ -1,5 +1,3 @@
-export var symbolsDetails = {
+export var symbolsDetails = null;
 
-};
-
-export var telegramBot = {};
+export var telegramBot = null;

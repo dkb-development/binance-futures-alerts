@@ -1,12 +1,6 @@
 {
   "scripts": {
-    "server": "nodemon --watch server.js server.js",
-    "start5": "nodemon --watch index5.js",
-    "start15": "nodemon --watch index15.js",
-    "trigger": "nodemon --watch trigger1.js",
-    "patternCheck": "nodemon --watch ./services/PatternCheckService.js ./services/PatternCheckService.js",
-    "testTelegramBot": "nodemon --watch ./testTelegramBot.js",
-    "startAlertAndPattern": "node server.js && node ./services/PatternCheckService.js"
+    "start": "nodemon index.js"
 
 
   },

@@ -1,8 +1,12 @@
-import {getDBConnectionDetails, getAllTrackedSymbols} from './PatternCheckDBService.js';
-import {getLatestCandlesticks} from './BinanceFuturesRestService.js';
+import {getDBConnectionDetails} from '../configs/DBConfig.js';
+const PatternCHeckCollectionName = "TrackedSymbols";
+import { getAllTrackedSymbols } from './PatternCheckDBService1.js';
 import { getSymbolsDetails, setSymbolsDetails } from '../localStorage1.js';
-import { createCustomWebSocket } from './BinanceFuturesStreamService.js';
-import { SendHighVolAlert, SendHighSpreadAlert } from './TelegramMessageService.js';
+import {getLatestCandlesticks} from './BinanceFuturesRestService.js';
+import { openSocket } from '../configs/BinanceSocketConfig.js';
+import { SendHighVolAlert, SendHighSpreadAlert } from './TelegramMessageService1.js';
+
+// import { createCustomWebSocket } from './BinanceFuturesStreamService.js';
 
 // // Modifying the console.log to print the data & time
 // const originalConsoleLog = console.log;
@@ -17,23 +21,28 @@ import { SendHighVolAlert, SendHighSpreadAlert } from './TelegramMessageService.
 // // Modifying the console.log to print the data & time
 
 export const startPatternCheck = async () => {
+    console.log("Inside Start Pattern Check");
+    var { client, database, collection }  = await getDBConnectionDetails(PatternCHeckCollectionName);
+
     // At start make db query to fetch all the coins for which sockets will be opened
-    await getDBConnectionDetails();
-
     var symbols = await getAllTrackedSymbols();
-    setInitialSymbolHistory(symbols);
+    await setInitialSymbolHistory(symbols);
 
+    // console.log(symbols);
     // Create websocket
     symbols.forEach(element => {
         var symbol = element.symbol, interval = element.interval, limit = 20;
-        createCustomWebSocket(symbol, interval, patternCheckCallbackFunc);
-    })
+        openSocket(symbol, interval, patternCheckCallbackFunc);
+    });
 };
 
 // startPatternCheck();
 
-const setInitialSymbolHistory = (symbols) => {
+const setInitialSymbolHistory = async (symbols) => {
     var symbolsDetails = getSymbolsDetails();
+    if(symbolsDetails == null){
+        symbolsDetails = {};
+    }
     symbols.forEach(async element => {
         var symbol = element.symbol, interval = element.interval, limit = 20;
         if(symbolsDetails[symbol] && symbolsDetails[symbol][interval]){
@@ -91,7 +100,7 @@ const setInitialSymbolHistory = (symbols) => {
         // Setting the symbols details shared variable
         setSymbolsDetails(symbolsDetails);
 
-        // console.log("All SYmbols : ",symbolsDetails);
+        // console.log("All Symbols : ",symbolsDetails);
     });
 }
 
@@ -110,7 +119,14 @@ const patternCheckCallbackFunc = (parsedData, currSymbol, currInterval) => {
         var quoteSellVolume = quoteVolume - quoteBuyVolume;
         var buySellPercent = parseFloat(((quoteBuyVolume/quoteSellVolume)*100).toFixed(6));
 
-        var symbolHistory = getSymbolsDetails()[symbol][interval];
+        var symbolHistory;
+        var symbolDetails = getSymbolsDetails();
+        if(symbolDetails && symbolDetails[symbol]){
+            symbolHistory = symbolDetails[symbol][interval];
+        }
+        if(!symbolHistory){
+            return;
+        }
 
         // check whether the current vol is alarming
         var volPercent = checkHighVol(candle, symbol, interval, symbolHistory);
@@ -157,14 +173,18 @@ const patternCheckCallbackFunc = (parsedData, currSymbol, currInterval) => {
         avgVol = calculateAverage(vols);
 
         // Save the final Details
-        setSymbolsDetails(getSymbolsDetails()[symbol][interval] = {
+        symbolDetails[symbol][interval] = {
             vols,
             spreads,
             volIndex,
             spreadIndex,
             avgSpread,
             avgVol
-        });
+        };
+
+        // set SymbolsDetails in localstorage
+        setSymbolsDetails(symbolDetails);
+
         console.log("Updated data for ", symbol, " for interval ", interval);
         // console.log(symbolsDetails);
     }
